@@ -1,0 +1,15 @@
+{
+  "name": "TaskForge C++ Environment",
+  "build": {
+    "dockerfile": "../Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools"
+      ]
+    }
+  },
+  "workspaceFolder": "/usr/src/taskforge",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/usr/src/taskforge,type=bind"
+}
