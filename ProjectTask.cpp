@@ -1,9 +1,12 @@
 #include "ProjectTask.h"
+#include "DepthFirstIterator.h"
+#include "PriorityInspectionIterator.h"
+#include "ScheduledState.h"
 
 ProjectTask::ProjectTask(int cost, int time){
     this->cost = cost;
     this->estTime = time;
-    this->currState = nullptr;
+    this->currState = new ScheduledState(); 
 }
 
 void ProjectTask::add(ProjectComponent* x){};
@@ -50,4 +53,18 @@ void ProjectTask::failInspection(ProjectTask* task){
 
 ProjectTask::~ProjectTask(){
     delete this->currState;
+}
+
+
+ProjectState* ProjectTask::getState() {
+    return this->currState;
+}
+
+ProjectIterator* ProjectTask::createIIterator(std::string type) {
+    if (type == "depth") {
+        return new DepthFirstIterator(this);
+    } else if (type == "priority") {
+        return new PriorityInspectionIterator(this);
+    }
+    return nullptr;
 }

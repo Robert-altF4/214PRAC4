@@ -15,6 +15,7 @@ public:
 	virtual void remove(ProjectComponent* x){}
 
 	virtual ~ProjectDecorator();
+	virtual ProjectIterator* createIIterator(std::string type);
 };
 
 #endif
