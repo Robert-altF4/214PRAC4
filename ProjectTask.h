@@ -33,6 +33,10 @@ public:
 	void failInspection(ProjectTask* task);
 
 	virtual ~ProjectTask();
+
+	ProjectState* getState();
+
+	virtual ProjectIterator* createIIterator(std::string type);
 };
 
 #endif

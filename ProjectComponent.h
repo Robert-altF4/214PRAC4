@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-//#include "ProjectIterator.h"
+class ProjectIterator;
 
 
 
@@ -19,7 +19,7 @@ public:
 
 	virtual int getTime() = 0;
 
-	//ProjectIterator* createIIterator(std::string type);
+	virtual ProjectIterator* createIIterator(std::string type) = 0;
 
 	virtual ~ProjectComponent();
 };
