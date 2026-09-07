@@ -7,6 +7,7 @@
 
 
 class ProjectGroup : public ProjectComponent {
+	friend class DepthFirstIterator;
 private:
 std::vector<ProjectComponent*> components;
 
@@ -22,6 +23,8 @@ public:
 	ProjectGroup();
 
 	virtual ~ProjectGroup();
+
+	virtual ProjectIterator* createIIterator(std::string type);
 };
 
 #endif
