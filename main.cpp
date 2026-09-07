@@ -71,6 +71,9 @@ int main() {
     
     std::cout << "[Workflow] Steel Framing finishes early and submits for inspection." << std::endl;
     steelFraming->submitForInspection(steelFraming);
+
+    std::cout << "[Workflow] Concrete Pour passes inspection and is completed." << std::endl;
+    concretePour->completeTask(concretePour);
     
     std::cout << "Original Safety Inspector Traversal (Uses old Snapshot):" << std::endl;
     for (; !safetyInspector->isDone(); safetyInspector->next()) {
@@ -81,6 +84,7 @@ int main() {
     //  Recursive Composite Math
     std::cout << "\n========== FINAL SITE CALCULATIONS ==========" << std::endl;
     std::cout << "Total Cascaded Project Cost: R" << siteMaster->getCost() << std::endl;
+    std::cout << "Total Estimated Time: " << siteMaster->getTime() << " days" << std::endl; 
     
     //  Memory Deallocation
     delete siteMaster;
