@@ -22,17 +22,17 @@ void DepthFirstIterator::pushChildren(ProjectComponent* aNode) {
 	ProjectGroup* group = dynamic_cast<ProjectGroup*>(aNode);
 	if (group != nullptr) {
 		// Reverse order so that _components[0] ends up on top of the stack.
-		for (size_t i = group->_components.size(); i > 0; --i) {
-			if (group->_components[i - 1] != nullptr) {
-				_traversalStack.push(group->_components[i - 1]);
+		for (size_t i = group->components.size(); i > 0; --i) {
+			if (group->components[i - 1] != nullptr) {
+				_traversalStack.push(group->components[i - 1]);
 			}
 		}
 		return;
 	}
 
 	ProjectDecorator* decorator = dynamic_cast<ProjectDecorator*>(aNode);
-	if (decorator != nullptr && decorator->_target != nullptr) {
-		_traversalStack.push(decorator->_target);
+	if (decorator != nullptr && decorator->target != nullptr) {
+		_traversalStack.push(decorator->target);
 	}
 	// A ProjectTask leaf has no children: nothing to push.
 }

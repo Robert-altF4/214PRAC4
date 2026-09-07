@@ -1,4 +1,6 @@
 #include "ProjectGroup.h"
+#include "DepthFirstIterator.h"
+#include "PriorityInspectionIterator.h"
 
 ProjectGroup::ProjectGroup(){
 
@@ -64,3 +66,14 @@ ProjectGroup::~ProjectGroup(){
     }
 
 }
+
+ProjectIterator* ProjectGroup::createIIterator(std::string type) {
+    if (type == "depth") {
+        return new DepthFirstIterator(this);
+    } else if (type == "priority") {
+        return new PriorityInspectionIterator(this);
+    }
+    return nullptr;
+}
+
+
