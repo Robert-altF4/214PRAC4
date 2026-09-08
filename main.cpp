@@ -54,34 +54,111 @@ void runActivityDiagram2_LifecycleWorkflow(ProjectTask* sampleTask) {
     std::cout << " [ACTIVITY DIAGRAM 2] Conditional Lifecycle & Decorator Workflow" << std::endl;
     std::cout << "=======================================================" << std::endl;
 
-    // 1. Initial State
+    // 1. Initial State: ScheduledState & Guard Testing on Scheduled
     std::cout << "[Action] Task initialized on schedule (Initial State: ScheduledState)." << std::endl;
+    std::cout << "[Guard Tests: ScheduledState Invalid Transitions]" << std::endl;
+    sampleTask->submitForInspection(sampleTask); // Invalid on Scheduled
+    sampleTask->completeTask(sampleTask);         // Invalid on Scheduled
+    sampleTask->failInspection(sampleTask);       // Invalid on Scheduled
 
-    // 2. Transition Scheduled -> Active
-    std::cout << "[Action] Subcontractor starts execution: startTask()." << std::endl;
-    sampleTask->startTask(sampleTask);
+    // 2. Transition Scheduled -> Active & Guard Testing on Active
+    std::cout << "\n[Action] Subcontractor starts execution: startTask()." << std::endl;
+    sampleTask->startTask(sampleTask);           // Valid -> ActiveState
+    std::cout << "[Guard Tests: ActiveState Invalid Transitions]" << std::endl;
+    sampleTask->startTask(sampleTask);           // Invalid on Active
+    sampleTask->completeTask(sampleTask);        // Invalid on Active
+    sampleTask->failInspection(sampleTask);      // Invalid on Active
 
-    // 3. Work reaches milestone -> submit for inspection
-    std::cout << "[Action] Subcontractor submits work: submitForInspection()." << std::endl;
-    sampleTask->submitForInspection(sampleTask);
+    // 3. Transition Active -> Inspection
+    std::cout << "\n[Action] Subcontractor submits work: submitForInspection()." << std::endl;
+    sampleTask->submitForInspection(sampleTask); // Valid -> InspectionState
 
-    // 4. Decision: Inspection Outcome (Simulation of Failure / Rework Branch)
-    std::cout << "[Decision] Quality/Safety Inspection: Defect/hazard detected?" << std::endl;
+    // 4. Decision: Inspection Outcome - Failure & Rework Branch
+    std::cout << "\n[Guard Tests: InspectionState Invalid Transitions]" << std::endl;
+    sampleTask->startTask(sampleTask);           // Invalid on Inspection
+    sampleTask->submitForInspection(sampleTask); // Invalid on Inspection
+
+    std::cout << "\n[Decision] Quality/Safety Inspection: Defect/hazard detected?" << std::endl;
     std::cout << "  -> [Branch: Inspection FAILED] Action: failInspection() reverts task to ActiveState for rework." << std::endl;
-    sampleTask->failInspection(sampleTask);
+    sampleTask->failInspection(sampleTask);      // Valid -> ActiveState (rework loop)
 
     // 5. Rework executed -> re-submitted
     std::cout << "[Action] Subcontractor performs corrective rework and resubmits: submitForInspection()." << std::endl;
-    sampleTask->submitForInspection(sampleTask);
+    sampleTask->submitForInspection(sampleTask); // Valid -> InspectionState
 
-    // 6. Decision: Inspection Outcome (Simulation of Approval Branch)
-    std::cout << "[Decision] Quality/Safety Inspection: Standards verified?" << std::endl;
+    // 6. Decision: Inspection Outcome - Approval Branch
+    std::cout << "\n[Decision] Quality/Safety Inspection: Standards verified?" << std::endl;
     std::cout << "  -> [Branch: Inspection PASSED] Action: completeTask() transitions to CompletedState." << std::endl;
-    sampleTask->completeTask(sampleTask);
+    sampleTask->completeTask(sampleTask);        // Valid -> CompletedState
 
-    // 7. Guard condition: Invalid Transition Attempted
-    std::cout << "[Guard Test] Attempting invalid transition on terminal CompletedState (e.g., startTask):" << std::endl;
-    sampleTask->startTask(sampleTask); // Protected by guard condition, safely handled without state corruption
+    // 7. Guard conditions: CompletedState Terminal Guards
+    std::cout << "\n[Guard Tests: CompletedState Terminal State Guards]" << std::endl;
+    sampleTask->startTask(sampleTask);           // Invalid on Completed
+    sampleTask->submitForInspection(sampleTask); // Invalid on Completed
+    sampleTask->completeTask(sampleTask);        // Invalid on Completed
+    sampleTask->failInspection(sampleTask);      // Invalid on Completed
+}
+
+// Helper to exercise component edge cases, removals, and boundary checks for 100% coverage
+void runSystemBoundaryVerification(ProjectComponent* decoratedRoot) {
+    std::cout << "\n[Coverage Audit] Exercising boundary conditions, removals, and iterator edge cases..." << std::endl;
+
+    // 1. ProjectTask leaf interface methods
+    ProjectTask* leafTask = new ProjectTask(100, 2);
+    leafTask->add(nullptr);
+    leafTask->remove(nullptr);
+    ProjectIterator* leafIt1 = leafTask->createIIterator("depth");
+    delete leafIt1;
+    ProjectIterator* leafIt2 = leafTask->createIIterator("priority");
+    delete leafIt2;
+    ProjectIterator* leafIt3 = leafTask->createIIterator("invalid_type");
+    delete leafIt3;
+
+    // 2. ProjectGroup remove (found, not found, nullptr) & invalid iterator
+    ProjectGroup* testGroup = new ProjectGroup();
+    ProjectTask* dummyItem = new ProjectTask(200, 4);
+    testGroup->add(dummyItem);
+    testGroup->add(nullptr);
+    testGroup->remove(dummyItem);     // Item found & removed
+    testGroup->remove(dummyItem);     // Item not found
+    testGroup->remove(nullptr);       // Nullptr check
+    ProjectIterator* grpIt = testGroup->createIIterator("invalid_type");
+    delete grpIt;
+    delete dummyItem;
+    delete testGroup;
+
+    // 3. ProjectDecorator add, remove, and iterators
+    if (decoratedRoot != nullptr) {
+        decoratedRoot->add(nullptr);
+        decoratedRoot->remove(nullptr);
+        ProjectIterator* decIt1 = decoratedRoot->createIIterator("depth");
+        delete decIt1;
+        ProjectIterator* decIt2 = decoratedRoot->createIIterator("priority");
+        delete decIt2;
+        ProjectIterator* decIt3 = decoratedRoot->createIIterator("invalid_type");
+        delete decIt3;
+    }
+
+    // 4. Test empty-stack edge cases on iterators polymorphically
+    ProjectIterator* emptyDF = leafTask->createIIterator("depth");
+    if (emptyDF != nullptr) {
+        emptyDF->first();
+        emptyDF->next();
+        emptyDF->isDone();
+        emptyDF->currentItem();
+        delete emptyDF;
+    }
+
+    ProjectIterator* emptyPrio = leafTask->createIIterator("priority");
+    if (emptyPrio != nullptr) {
+        emptyPrio->first();
+        emptyPrio->next();
+        emptyPrio->isDone();
+        emptyPrio->currentItem();
+        delete emptyPrio;
+    }
+
+    delete leafTask;
 }
 
 // ============================================================================
@@ -182,7 +259,10 @@ int main() {
     // 7. Demonstrate Activity Diagram 3: Multi-Phase Domain Workflow
     runActivityDiagram3_DomainWorkflow(siteMaster, foundations, superstructure);
 
-    // 8. Safe Recursive Memory Deallocation (Virtual destructors)
+    // 8. System Edge Cases and Boundary Verification (Ensures 100% method coverage)
+    runSystemBoundaryVerification(rushedToxicExcavation);
+
+    // 9. Safe Recursive Memory Deallocation (Virtual destructors)
     std::cout << "\n[Cleanup] Deallocating entire Composite hierarchy via virtual destructors..." << std::endl;
     delete siteMaster;
     
