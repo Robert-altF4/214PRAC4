@@ -1,0 +1,61 @@
+@startuml ActivityDiagram2_LifecycleWorkflow
+skinparam backgroundColor #FFFFFF
+skinparam activity {
+  BackgroundColor #E8F4F8
+  BorderColor #2B5B84
+  DiamondBackgroundColor #FFF2CC
+  DiamondBorderColor #D6B656
+}
+
+title Activity Diagram 2: Task Lifecycle State Transitions & Decorator Configuration
+
+start
+
+:Instantiate ProjectTask(cost, time)\n(Initial State: ScheduledState);
+
+:Subcontractor attempts to commence task\n(aTask->startTask());
+
+if (Guard: Is Current State == ScheduledState?) then ([Yes - Valid])
+  :Transition to ActiveState\n(Task is now actively underway on site);
+else ([No - Invalid Transition])
+  :Invoke invalidTransition()\n(Log warning, retain current state);
+  stop
+endif
+
+:Construction work proceeds on site;
+
+if (Site Environmental & Schedule Conditions) then ([Hazardous Conditions Detected])
+  :Wrap task dynamically with hazardDecorator\n(Apply 15x cost factor and 5x time multiplier);
+elseif (Expedited Milestone Target) then ([Rush Schedule Requested])
+  :Wrap task dynamically with rushDecorator\n(Apply 10x overtime cost and halve completion time);
+else ([Normal Conditions])
+  :Proceed without additional decoration;
+endif
+
+:Milestone reached;\nSubcontractor submits task for inspection\n(aTask->submitForInspection());
+
+:Transition to InspectionState\n(Task flagged for safety & quality evaluation);
+
+:Safety & Quality Inspector audits executed work;
+
+if (Inspection Quality Decision) then ([Defects / Non-Compliance Found\n(Inspection Fails)])
+  :Invoke aTask->failInspection();
+  :Transition back to ActiveState\n(Rework Loop triggered);
+  :Subcontractor performs corrective rework;
+  :Re-submit task for inspection\n(aTask->submitForInspection());
+  :Re-enter InspectionState;
+else ([Meets Standards & Building Codes\n(Inspection Passes)])
+  :Invoke aTask->completeTask();
+  :Transition to CompletedState\n(Terminal State);
+endif
+
+if (Subsequent Operation Attempted?) then ([Operation on Completed Task])
+  :Guard catches attempt: invalidTransition()\n(Safely blocks state corruption);
+else ([No further actions])
+endif
+
+:Task finalized in CompletedState;
+
+stop
+
+@enduml

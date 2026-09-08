@@ -1,0 +1,29 @@
+@startuml ActivityDiagram1_TraversalWorkflow
+skinparam backgroundColor #FFFFFF
+skinparam activity {
+  BackgroundColor #E8F4F8
+  BorderColor #2B5B84
+  DiamondBackgroundColor #FFF2CC
+  DiamondBorderColor #D6B656
+}
+
+title Activity Diagram 1: Site Inspection Traversal Workflow (Iterator Pattern)
+
+start
+
+:Client (Site Manager / Safety Inspector) requests iterator from Composite root\n(e.g., root->createIIterator("depth") or root->createIIterator("priority"));
+
+:Initialize traversal cursor and stack/snapshot\n(it->first());
+
+while (Is iterator done?\n[!it->isDone()]) is ([No - More Components])
+  :Retrieve current component pointer\n(current = it->currentItem());
+  :Evaluate component metrics and attributes\n(current->getCost(), current->getTime(), current->getState());
+  :Execute inspection / work processing action on component;
+  :Advance iterator to next component in hierarchy\n(it->next());
+endwhile ([Yes - Traversal Complete])
+
+:Deallocate iterator instance to release traversal resources\n(delete it;);
+
+stop
+
+@enduml

@@ -1,0 +1,26 @@
+@startuml StateDiagram
+skinparam backgroundColor #FFFFFF
+skinparam state {
+  BackgroundColor #E8F4F8
+  BorderColor #2B5B84
+  ArrowColor #2B5B84
+}
+
+title TaskForge: ProjectTask Lifecycle State Diagram
+
+[*] --> ScheduledState : Task Created\n(Initial State)
+
+ScheduledState --> ActiveState : startTask()\n[Guard: Task starts execution]
+ScheduledState --> ScheduledState : submitForInspection() / completeTask() / failInspection()\n[Guard: Invalid Transition / invalidTransition()]
+
+ActiveState --> InspectionState : submitForInspection()\n[Guard: Work completed, milestone submitted]
+ActiveState --> ActiveState : startTask() / completeTask() / failInspection()\n[Guard: Invalid Transition / invalidTransition()]
+
+InspectionState --> CompletedState : completeTask()\n[Guard: Inspection Passed / Quality Verified]
+InspectionState --> ActiveState : failInspection()\n[Guard: Inspection Failed / Rework Loop]
+InspectionState --> InspectionState : startTask() / submitForInspection()\n[Guard: Invalid Transition / invalidTransition()]
+
+CompletedState --> [*] : Project Task Terminated
+CompletedState --> CompletedState : startTask() / submitForInspection() / completeTask() / failInspection()\n[Guard: Terminal State / invalidTransition()]
+
+@enduml

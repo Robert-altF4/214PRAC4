@@ -1,0 +1,69 @@
+@startuml ObjectDiagram
+skinparam backgroundColor #FFFFFF
+skinparam object {
+  BackgroundColor #F0F7FF
+  BorderColor #2B5B84
+  ArrowColor #2B5B84
+}
+
+title TaskForge: Construction Site Runtime Object Diagram (3 Levels Deep)
+
+object "siteMaster : ProjectGroup" as siteMaster {
+}
+
+object "foundations : ProjectGroup" as foundations {
+}
+
+object "superstructure : ProjectGroup" as superstructure {
+}
+
+object "rushedToxicExcavation : rushDecorator" as rushDec {
+}
+
+object "toxicExcavation : hazardDecorator" as hazDec {
+  warning = "Contaminated Soil"
+}
+
+object "excavation : ProjectTask" as task1 {
+  cost = 5000
+  estTime = 10
+}
+
+object "concretePour : ProjectTask" as task2 {
+  cost = 15000
+  estTime = 5
+}
+
+object "steelFraming : ProjectTask" as task3 {
+  cost = 25000
+  estTime = 14
+}
+
+object "s1 : ActiveState" as state1 {
+}
+
+object "s2 : CompletedState" as state2 {
+}
+
+object "s3 : CompletedState" as state3 {
+}
+
+' Level 1 to Level 2
+siteMaster *-- foundations : contains
+siteMaster *-- superstructure : contains
+
+' Level 2 to Level 3
+foundations *-- rushDec : contains
+foundations *-- task2 : contains
+superstructure *-- task3 : contains
+
+' Decorator wrapping hierarchy
+rushDec *-- hazDec : wraps target
+hazDec *-- task1 : wraps target
+
+' Task to State
+task1 *-- state1 : currState
+task2 *-- state2 : currState
+task3 *-- state3 : currState
+
+@enduml

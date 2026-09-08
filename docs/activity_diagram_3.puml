@@ -1,0 +1,59 @@
+@startuml ActivityDiagram3_DomainWorkflow
+skinparam backgroundColor #FFFFFF
+skinparam activity {
+  BackgroundColor #E8F4F8
+  BorderColor #2B5B84
+  DiamondBackgroundColor #FFF2CC
+  DiamondBorderColor #D6B656
+}
+
+title Activity Diagram 3: Multi-Phase Construction Execution & Quality Assurance Workflow
+
+|Site Manager|
+start
+:Define Project Scope & Budget;
+:Assemble 3-Level Composite Hierarchy\n(siteMaster contains foundations & superstructure);
+:Submit Site Master Hierarchy for Phase Execution;
+
+fork
+  |Subcontractor Civil Team|
+  partition "<<Composite Activity>> Execute Sub-Phase: Foundations" {
+    :Receive Foundations ProjectGroup;
+    :Execute Hazardous Soil Excavation\n(rushedToxicExcavation);
+    :Execute Concrete Foundation Pouring\n(concretePour);
+    :Submit Foundations Phase Milestones;
+  }
+
+fork again
+  |Subcontractor Structural Team|
+  partition "<<Composite Activity>> Execute Sub-Phase: Superstructure" {
+    :Receive Superstructure ProjectGroup;
+    :Erect Structural Steel Framing\n(steelFraming);
+    :Submit Superstructure Phase Milestones;
+  }
+
+fork again
+  |Safety & Quality Inspector|
+  :Initialize Priority Inspection Iterator\n(siteMaster->createIIterator("priority"));
+  :Traverse All Active Tasks in Inspection State;
+  :Conduct On-Site Safety & Regulatory Compliance Audits;
+  :Record Quality Inspection Sign-Offs;
+
+end fork
+
+|Site Manager|
+:Synchronize All Phase Milestones & Inspection Results (Join);
+:Aggregate Recursive Composite Metrics\n(siteMaster->getCost(), siteMaster->getTime());
+
+if (Decision: Total Cost & Schedule within Authorized Limits?) then ([Within Budget & Schedule])
+  :Generate Final Site Handover Certificate;
+  :Approve Commercial Sign-Off;
+else ([Budget / Timeline Overrun])
+  :Flag Discrepancy & Issue Variance Report;
+endif
+
+:Deallocate Composite Hierarchy via Virtual Destructors\n(delete siteMaster;);
+
+stop
+
+@enduml

@@ -1,0 +1,10 @@
+# Visual Paradigm temporary files
+*.bak_*
+*.lck
+.*.lck
+
+# OS and Editor artifacts
+.DS_Store
+Thumbs.db
+*.swp
+*~

@@ -1,0 +1,167 @@
+@startuml ClassDiagram
+skinparam backgroundColor #FFFFFF
+skinparam class {
+  BackgroundColor #F8F9FA
+  BorderColor #2B5B84
+  ArrowColor #2B5B84
+}
+
+title TaskForge: Construction Site Management System - UML Class Diagram
+
+abstract class ProjectComponent {
+  +ProjectComponent()
+  +virtual ~ProjectComponent()
+  +virtual void add(ProjectComponent* x)*
+  +virtual void remove(ProjectComponent* x)*
+  +virtual int getCost()* : int
+  +virtual int getTime()* : int
+  +virtual ProjectIterator* createIIterator(string type)* : ProjectIterator*
+}
+
+class ProjectGroup {
+  -components : vector<ProjectComponent*>
+  +ProjectGroup()
+  +virtual ~ProjectGroup()
+  +virtual void add(ProjectComponent* x)
+  +virtual void remove(ProjectComponent* x)
+  +virtual int getCost() : int
+  +virtual int getTime() : int
+  +virtual ProjectIterator* createIIterator(string type) : ProjectIterator*
+}
+
+class ProjectTask {
+  -cost : int
+  -estTime : int
+  -currState : ProjectState*
+  +ProjectTask(cost: int, time: int)
+  +virtual ~ProjectTask()
+  +virtual void add(ProjectComponent* x)
+  +virtual void remove(ProjectComponent* x)
+  +virtual int getCost() : int
+  +virtual int getTime() : int
+  +virtual ProjectIterator* createIIterator(string type) : ProjectIterator*
+  +void setState(ProjectState* state)
+  +ProjectState* getState() : ProjectState*
+  +void startTask(ProjectTask* task)
+  +void submitForInspection(ProjectTask* task)
+  +void completeTask(ProjectTask* task)
+  +void failInspection(ProjectTask* task)
+}
+
+abstract class ProjectDecorator {
+  +target : ProjectComponent*
+  +ProjectDecorator(t: ProjectComponent*)
+  +virtual ~ProjectDecorator()
+  +virtual void add(ProjectComponent* x)
+  +virtual void remove(ProjectComponent* x)
+  +virtual ProjectIterator* createIIterator(string type) : ProjectIterator*
+}
+
+class hazardDecorator {
+  -warning : string
+  +hazardDecorator(x: ProjectComponent*, w: string)
+  +virtual int getCost() : int
+  +virtual int getTime() : int
+}
+
+class rushDecorator {
+  +rushDecorator(x: ProjectComponent*)
+  +virtual int getCost() : int
+  +virtual int getTime() : int
+}
+
+abstract class ProjectIterator {
+  +virtual ~ProjectIterator()
+  +virtual void first()*
+  +virtual void next()*
+  +virtual bool isDone()* : bool
+  +virtual ProjectComponent* currentItem()* : ProjectComponent*
+}
+
+class DepthFirstIterator {
+  -_root : ProjectComponent*
+  -_traversalStack : stack<ProjectComponent*>
+  -void pushChildren(ProjectComponent* aNode)
+  +DepthFirstIterator(aRoot: ProjectComponent*)
+  +virtual ~DepthFirstIterator()
+  +virtual void first()
+  +virtual void next()
+  +virtual bool isDone() : bool
+  +virtual ProjectComponent* currentItem() : ProjectComponent*
+}
+
+class PriorityInspectionIterator {
+  -_root : ProjectComponent*
+  -_traversalStack : stack<ProjectComponent*>
+  +PriorityInspectionIterator(aRoot: ProjectComponent*)
+  +virtual ~PriorityInspectionIterator()
+  +virtual void first()
+  +virtual void next()
+  +virtual bool isDone() : bool
+  +virtual ProjectComponent* currentItem() : ProjectComponent*
+}
+
+abstract class ProjectState {
+  +virtual ~ProjectState()
+  +virtual void startTask(ProjectTask* aTask)*
+  +virtual void submitForInspection(ProjectTask* aTask)*
+  +virtual void completeTask(ProjectTask* aTask)*
+  +virtual void failInspection(ProjectTask* aTask)*
+  #void invalidTransition(ProjectTask* aTask, string aAction, string aStateName)
+  #void transition(ProjectTask* aTask, ProjectState* aNext, string aFrom, string aTo)
+}
+
+class ScheduledState {
+  +virtual void startTask(ProjectTask* aTask)
+  +virtual void submitForInspection(ProjectTask* aTask)
+  +virtual void completeTask(ProjectTask* aTask)
+  +virtual void failInspection(ProjectTask* aTask)
+}
+
+class ActiveState {
+  +virtual void startTask(ProjectTask* aTask)
+  +virtual void submitForInspection(ProjectTask* aTask)
+  +virtual void completeTask(ProjectTask* aTask)
+  +virtual void failInspection(ProjectTask* aTask)
+}
+
+class InspectionState {
+  +virtual void startTask(ProjectTask* aTask)
+  +virtual void submitForInspection(ProjectTask* aTask)
+  +virtual void completeTask(ProjectTask* aTask)
+  +virtual void failInspection(ProjectTask* aTask)
+}
+
+class CompletedState {
+  +virtual void startTask(ProjectTask* aTask)
+  +virtual void submitForInspection(ProjectTask* aTask)
+  +virtual void completeTask(ProjectTask* aTask)
+  +virtual void failInspection(ProjectTask* aTask)
+}
+
+' Composite Relationships
+ProjectComponent <|-- ProjectGroup : Composite
+ProjectComponent <|-- ProjectTask : Leaf
+ProjectGroup o-- "0..*" ProjectComponent : contains
+
+' Decorator Relationships
+ProjectComponent <|-- ProjectDecorator : Decorator
+ProjectDecorator o-- "1" ProjectComponent : wraps target
+ProjectDecorator <|-- hazardDecorator : ConcreteDecorator
+ProjectDecorator <|-- rushDecorator : ConcreteDecorator
+
+' State Relationships
+ProjectTask *-- "1" ProjectState : owns currState
+ProjectState <|-- ScheduledState : ConcreteState
+ProjectState <|-- ActiveState : ConcreteState
+ProjectState <|-- InspectionState : ConcreteState
+ProjectState <|-- CompletedState : ConcreteState
+
+' Iterator Relationships
+ProjectIterator <|-- DepthFirstIterator : ConcreteIterator
+ProjectIterator <|-- PriorityInspectionIterator : ConcreteIterator
+ProjectComponent ..> ProjectIterator : creates via createIIterator()
+DepthFirstIterator ..> ProjectGroup : traverses
+PriorityInspectionIterator ..> ProjectTask : filters InspectionState
+
+@enduml

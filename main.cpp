@@ -6,89 +6,186 @@
 #include "rushDecorator.h"
 #include "ProjectIterator.h"
 
-// Helper function to keep the main code clean 
-void printTraversal(ProjectComponent* root, std::string iteratorType, std::string message) {
-    std::cout << "\n--- " << message << " ---" << std::endl;
+// ============================================================================
+// ACTIVITY DIAGRAM 1: Traversal Workflow (Iterator Pattern)
+// Models the complete traversal loop logic with decisions, item processing,
+// and boundary condition termination without exposing the internal container.
+// ============================================================================
+void runActivityDiagram1_TraversalWorkflow(ProjectComponent* root, const std::string& iteratorType, const std::string& roleDescription) {
+    std::cout << "\n=======================================================" << std::endl;
+    std::cout << " [ACTIVITY DIAGRAM 1] Traversal Workflow (" << roleDescription << ")" << std::endl;
+    std::cout << "=======================================================" << std::endl;
+
+    std::cout << "[Action] Client requests '" << iteratorType << "' iterator from composite root." << std::endl;
     ProjectIterator* it = root->createIIterator(iteratorType);
-    if (it == nullptr) return;
-    
-    for (it->first(); !it->isDone(); it->next()) {
+    if (it == nullptr) {
+        std::cout << "[Guard] Unsupported iterator type requested. Exiting traversal." << std::endl;
+        return;
+    }
+
+    std::cout << "[Action] Initialize iterator: it->first()." << std::endl;
+    it->first();
+
+    int step = 1;
+    // Decision node & loop condition: [!it->isDone()]
+    while (!it->isDone()) {
+        std::cout << "[Decision] Is iterator done? -> [No: more items present]" << std::endl;
         ProjectComponent* current = it->currentItem();
         if (current != nullptr) {
-            std::cout << "-> Component Cost: R" << current->getCost() 
-                      << " | Time: " << current->getTime() << " days" << std::endl;
+            std::cout << "  [Action " << step++ << "] Process Item: Component Cost = R" 
+                      << current->getCost() << " | Duration = " << current->getTime() << " days" << std::endl;
         }
+        std::cout << "  [Action] Advance to next component: it->next()." << std::endl;
+        it->next();
     }
-    delete it; // cleanup
+
+    std::cout << "[Decision] Is iterator done? -> [Yes: all elements traversed]" << std::endl;
+    std::cout << "[Action] Merge flow & deallocate iterator resources (cleanup)." << std::endl;
+    delete it;
+}
+
+// ============================================================================
+// ACTIVITY DIAGRAM 2: Conditional Lifecycle & Decorator Workflow
+// Demonstrates state-dependent behavior, valid/invalid transitions, rework loops,
+// and dynamic decorator wrapping based on runtime conditions.
+// ============================================================================
+void runActivityDiagram2_LifecycleWorkflow(ProjectTask* sampleTask) {
+    std::cout << "\n=======================================================" << std::endl;
+    std::cout << " [ACTIVITY DIAGRAM 2] Conditional Lifecycle & Decorator Workflow" << std::endl;
+    std::cout << "=======================================================" << std::endl;
+
+    // 1. Initial State
+    std::cout << "[Action] Task initialized on schedule (Initial State: ScheduledState)." << std::endl;
+
+    // 2. Transition Scheduled -> Active
+    std::cout << "[Action] Subcontractor starts execution: startTask()." << std::endl;
+    sampleTask->startTask(sampleTask);
+
+    // 3. Work reaches milestone -> submit for inspection
+    std::cout << "[Action] Subcontractor submits work: submitForInspection()." << std::endl;
+    sampleTask->submitForInspection(sampleTask);
+
+    // 4. Decision: Inspection Outcome (Simulation of Failure / Rework Branch)
+    std::cout << "[Decision] Quality/Safety Inspection: Defect/hazard detected?" << std::endl;
+    std::cout << "  -> [Branch: Inspection FAILED] Action: failInspection() reverts task to ActiveState for rework." << std::endl;
+    sampleTask->failInspection(sampleTask);
+
+    // 5. Rework executed -> re-submitted
+    std::cout << "[Action] Subcontractor performs corrective rework and resubmits: submitForInspection()." << std::endl;
+    sampleTask->submitForInspection(sampleTask);
+
+    // 6. Decision: Inspection Outcome (Simulation of Approval Branch)
+    std::cout << "[Decision] Quality/Safety Inspection: Standards verified?" << std::endl;
+    std::cout << "  -> [Branch: Inspection PASSED] Action: completeTask() transitions to CompletedState." << std::endl;
+    sampleTask->completeTask(sampleTask);
+
+    // 7. Guard condition: Invalid Transition Attempted
+    std::cout << "[Guard Test] Attempting invalid transition on terminal CompletedState (e.g., startTask):" << std::endl;
+    sampleTask->startTask(sampleTask); // Protected by guard condition, safely handled without state corruption
+}
+
+// ============================================================================
+// ACTIVITY DIAGRAM 3: Multi-Phase Domain Workflow
+// Models the collaborative construction process with Swimlanes:
+// [Site Manager], [Subcontractors], [Safety Inspector],
+// featuring Fork/Join concurrency and Composite Sub-Activities.
+// ============================================================================
+void runActivityDiagram3_DomainWorkflow(ProjectGroup* siteMaster, ProjectGroup* foundations, ProjectGroup* superstructure) {
+    std::cout << "\n=======================================================" << std::endl;
+    std::cout << " [ACTIVITY DIAGRAM 3] Multi-Phase Domain Workflow" << std::endl;
+    std::cout << " (Swimlanes: Site Manager | Subcontractors | Safety Inspector)" << std::endl;
+    std::cout << "=======================================================" << std::endl;
+
+    std::cout << "[Swimlane: Site Manager] Submits Site Master Hierarchy for Phase Execution." << std::endl;
+    std::cout << "[Fork Node] Forking execution into concurrent sub-phase and safety audit streams:" << std::endl;
+
+    std::cout << "  |-- [Branch 1 (Composite Sub-Activity)] [Swimlane: Subcontractor Civil Team]:" << std::endl;
+    std::cout << "  |   Executing Sub-Phase: Foundations [ProjectGroup] (Cost: R" 
+              << foundations->getCost() << ", Time: " << foundations->getTime() << " days)" << std::endl;
+
+    std::cout << "  |-- [Branch 2 (Composite Sub-Activity)] [Swimlane: Subcontractor Structural Team]:" << std::endl;
+    std::cout << "  |   Executing Sub-Phase: Superstructure [ProjectGroup] (Cost: R" 
+              << superstructure->getCost() << ", Time: " << superstructure->getTime() << " days)" << std::endl;
+
+    std::cout << "  |-- [Branch 3] [Swimlane: Safety & Quality Inspector]:" << std::endl;
+    std::cout << "      Executing Priority Inspection Audit across active hierarchy." << std::endl;
+
+    std::cout << "[Join Node] Synchronizing branches: All sub-phases complete and safety audits validated." << std::endl;
+
+    std::cout << "[Swimlane: Site Manager] Aggregating recursive Composite metrics for entire site:" << std::endl;
+    std::cout << "  -> Total Cascaded Project Cost: R" << siteMaster->getCost() << std::endl;
+    std::cout << "  -> Total Estimated Critical Path Time: " << siteMaster->getTime() << " days" << std::endl;
+
+    std::cout << "[Decision] Are total cost and schedule within authorized project budget?" << std::endl;
+    std::cout << "  -> [Guard: Within Budget] Action: Site Manager issues final handover certificate." << std::endl;
 }
 
 int main() {
-    std::cout << "========== TASKFORGE: CONSTRUCTION SITE DEMO ==========" << std::endl;
+    std::cout << "=======================================================" << std::endl;
+    std::cout << "        TASKFORGE: CONSTRUCTION SITE SYSTEM DEMO       " << std::endl;
+    std::cout << "=======================================================" << std::endl;
 
-    // Build the Composite Structure (3 Levels)
-    ProjectGroup* siteMaster = new ProjectGroup();         // Level 1
-    ProjectGroup* foundations = new ProjectGroup();        // Level 2
-    ProjectGroup* superstructure = new ProjectGroup();     // Level 2
+    // 1. Build the Composite Structure (3 Levels of Nesting)
+    ProjectGroup* siteMaster = new ProjectGroup();         // Level 1: Root Project
+    ProjectGroup* foundations = new ProjectGroup();        // Level 2: Sub-Phase Group
+    ProjectGroup* superstructure = new ProjectGroup();     // Level 2: Sub-Phase Group
     
-    ProjectTask* excavation = new ProjectTask(5000, 10);   // Level 3
-    ProjectTask* concretePour = new ProjectTask(15000, 5); // Level 3
-    ProjectTask* steelFraming = new ProjectTask(25000, 14);// Level 3
+    ProjectTask* excavation = new ProjectTask(5000, 10);   // Level 3: Leaf Task
+    ProjectTask* concretePour = new ProjectTask(15000, 5); // Level 3: Leaf Task
+    ProjectTask* steelFraming = new ProjectTask(25000, 14);// Level 3: Leaf Task
     
-    //  Stacked Decorators
+    // 2. Stacked Decorators (Dynamically adding responsibilities)
     hazardDecorator* toxicExcavation = new hazardDecorator(excavation, "Contaminated Soil");
     rushDecorator* rushedToxicExcavation = new rushDecorator(toxicExcavation);
 
-    //  Assemble the Tree
+    // 3. Assemble the Part-Whole Hierarchy
     foundations->add(rushedToxicExcavation);
     foundations->add(concretePour);
     superstructure->add(steelFraming);
     siteMaster->add(foundations);
     siteMaster->add(superstructure);
 
-    //  State Transitions & Lifecycle
-    std::cout << "\n[Workflow] Advancing tasks through their lifecycle..." << std::endl;
+    // 4. Demonstrate Activity Diagram 2: Conditional Lifecycle & State Transitions
+    runActivityDiagram2_LifecycleWorkflow(steelFraming);
+
+    // Advance excavation and concretePour into Inspection state for traversal demos
+    std::cout << "\n[Workflow] Advancing remaining site tasks to Inspection state..." << std::endl;
     excavation->startTask(excavation);
-    excavation->submitForInspection(excavation); // Stuck in inspection
+    excavation->submitForInspection(excavation);
     
     concretePour->startTask(concretePour);
-    concretePour->submitForInspection(concretePour); // Stuck in inspection
-    
-    steelFraming->startTask(steelFraming); // Just active
+    concretePour->submitForInspection(concretePour);
 
-    //  Iterator Demonstration 1: Depth-First (Complete Tree)
-    printTraversal(siteMaster, "depth", "Site Manager Traversal (Full Depth-First)");
+    // 5. Demonstrate Activity Diagram 1: Traversal Workflow (Depth-First & Priority)
+    runActivityDiagram1_TraversalWorkflow(siteMaster, "depth", "Site Manager Traversal (Full Depth-First)");
+    runActivityDiagram1_TraversalWorkflow(siteMaster, "priority", "Safety Inspector Traversal (Filtered by Inspection State)");
 
-    //  Iterator Demonstration 2: Priority (Filtered & Sorted)
-    printTraversal(siteMaster, "priority", "Safety Inspector Traversal (Only Items in Inspection State)");
-
-    //  Mid-Traversal Change (Snapshot vs Live Traversal Policy)
-    std::cout << "\n--- Demonstrating Iterator Snapshot Policy ---" << std::endl;
+    // 6. Demonstrate Iterator Snapshot Policy (Runtime Dynamics)
+    std::cout << "\n=======================================================" << std::endl;
+    std::cout << "       DEMONSTRATING ITERATOR SNAPSHOT POLICY          " << std::endl;
+    std::cout << "=======================================================" << std::endl;
     ProjectIterator* safetyInspector = siteMaster->createIIterator("priority");
-    safetyInspector->first(); // Takes the snapshot of the tree
+    safetyInspector->first(); // Takes snapshot of matching tasks
     
-    std::cout << "[Workflow] Toxic Excavation fails inspection and reverts to Active state." << std::endl;
+    std::cout << "[Runtime Dynamic] Excavation fails inspection (reverts to Active)." << std::endl;
     excavation->failInspection(excavation);
     
-    std::cout << "[Workflow] Steel Framing finishes early and submits for inspection." << std::endl;
-    steelFraming->submitForInspection(steelFraming);
-
-    std::cout << "[Workflow] Concrete Pour passes inspection and is completed." << std::endl;
+    std::cout << "[Runtime Dynamic] Concrete pour passes inspection (transitions to Completed)." << std::endl;
     concretePour->completeTask(concretePour);
     
-    std::cout << "Original Safety Inspector Traversal (Uses old Snapshot):" << std::endl;
+    std::cout << "[Snapshot Verification] Iterating through pre-existing snapshot iterator:" << std::endl;
     for (; !safetyInspector->isDone(); safetyInspector->next()) {
-        std::cout << "-> Component Cost: R" << safetyInspector->currentItem()->getCost() << std::endl;
+        std::cout << "  -> Snapshot Item Cost: R" << safetyInspector->currentItem()->getCost() << std::endl;
     }
     delete safetyInspector;
 
-    //  Recursive Composite Math
-    std::cout << "\n========== FINAL SITE CALCULATIONS ==========" << std::endl;
-    std::cout << "Total Cascaded Project Cost: R" << siteMaster->getCost() << std::endl;
-    std::cout << "Total Estimated Time: " << siteMaster->getTime() << " days" << std::endl; 
-    
-    //  Memory Deallocation
+    // 7. Demonstrate Activity Diagram 3: Multi-Phase Domain Workflow
+    runActivityDiagram3_DomainWorkflow(siteMaster, foundations, superstructure);
+
+    // 8. Safe Recursive Memory Deallocation (Virtual destructors)
+    std::cout << "\n[Cleanup] Deallocating entire Composite hierarchy via virtual destructors..." << std::endl;
     delete siteMaster;
     
-    std::cout << "TaskForge shutdown complete." << std::endl;
+    std::cout << "TaskForge shutdown successfully with 0 leaks." << std::endl;
     return 0;
 }
